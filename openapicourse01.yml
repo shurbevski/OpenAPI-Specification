@@ -1,0 +1,246 @@
+openapi: 3.0.2
+info:
+  version: "0.1"
+  title: "OpenAPI Course"
+  description: Specification for OpenAPI Course
+  termsOfService: http://some.web.page/terms
+  contact:
+    name: Main Developer
+    url: https://main.developer.i.am
+    email: main.developer@i.am
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: http://dev.example.com
+    description: Development servers
+  - url: http://qa.example.com
+    description: Quality Assurance server
+  - url: http://prod.example.com
+    description: Production Release 
+paths:
+  /v1/customers:
+    get:
+      tags:
+        - Customers
+      responses:
+        "200":
+          description: Returns a list of customers
+  /v1/beers:
+    get:
+      tags:
+        - Beer 
+      parameters:
+        - $ref: "#/components/parameters/pageNumber"
+        - $ref: "#/components/parameters/pageSize"
+      responses:
+        "200":
+          description: Fetch a list of beers.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BeerList"
+        "400":
+          description: Not found!
+    post:
+      summary: Register a new beer
+      description: A much longer,
+                    possibly `multiline` description
+      tags:
+        - Beer 
+      operationId: postBeer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/beer"
+      responses:
+        "201": 
+          description: OK, registered
+          headers:
+            Location:
+              description: Location of the registered beer
+              schema:
+                type: string 
+                format: uri
+                example: blah blah
+        "500":
+          description: Uh-Oh      
+  /v1/beers/{beerId}:
+    get:
+      tags:
+        - Beer 
+      parameters:
+        - $ref: "#/components/parameters/beerIdPathParam"
+      responses:
+        "200":
+          description: Found the sought for beer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/beer"
+        "404":
+          description: No beers with id {beerId}
+    put:
+      summary: Update beer info
+      description: Update the information of a bear with a given beerId
+      tags:
+        - Beer
+      parameters:
+        - $ref: "#/components/parameters/beerIdPathParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/beer"
+      responses:
+        "204":
+          description: Updated
+        "404":
+          description: No beer with id {beerId} found
+    delete:
+      summary: Delete beer
+      description: Delete beer info for a given Id
+      tags: [Beer]
+      operationId: deleteBeerV1
+      parameters:
+        - $ref: "#/components/parameters/beerIdPathParam"
+      responses:
+        "200":
+          description: Deleted
+            
+        
+          
+components:
+  schemas:
+    brewery:
+      type: object
+      properties:
+        company:
+          type: string
+          example: Skopska Pivara
+        place:
+          type: string
+          example: Skopje, Macedonia
+    beer:
+      type: object
+      properties:
+        id: 
+          $ref: "#/components/schemas/beerId"
+          # readOnly: true
+          # type: string
+          # format: uuid
+        name:
+          type: string
+          example: Skopsko
+        style:
+          type: string
+          enum:
+            - Lager
+            - Pielsner
+            - Ale
+            - Wheat
+          example: Pielsner
+        upc: 
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 25.0
+          example: 5.0
+        brewery:
+          $ref: "#/components/schemas/brewery"
+    beerId:
+      type: string
+      format: uuid
+      readOnly: true
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    BeerList: 
+      type: array
+      items: 
+        $ref: "#components/schemas/beer"
+    BeerPagedList:
+      type: object
+      properties:
+        content:
+          $ref: '#/components/schemas/BeerList'
+      allOf:
+      - $ref: '#/components/schemas/PagedResponse'
+    PagedResponse:
+      type: object
+      properties:
+        pageable:
+          $ref: '#/components/schemas/PagedResponse_pageable'
+        totalPages:
+          type: integer
+          format: int32
+        last:
+          type: boolean
+        totalElements:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        number:
+          type: integer
+          format: int32
+        numberOfElements:
+          type: integer
+          format: int32
+        sort:
+          $ref: '#/components/schemas/PagedResponse_pageable_sort'
+        first:
+          type: boolean
+    PagedResponse_pageable_sort:
+      type: object
+      properties:
+        sorted:
+          type: boolean
+        unsorted:
+          type: boolean
+    PagedResponse_pageable:
+      type: object
+      properties:
+        sort:
+          $ref: '#/components/schemas/PagedResponse_pageable_sort'
+        offset:
+          type: integer
+          format: int32
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        paged:
+          type: boolean
+        unpaged:
+          type: boolean
+  parameters:
+    pageNumber: 
+      name: pageNumber
+      in: query
+      description: Page number
+      schema:
+        type: integer
+        format: int32
+        default: 1
+    pageSize:
+      name: pageSize
+      in: query
+      required: False
+      schema: 
+        format: int32
+        default: 25
+    beerIdPathParam:
+      name: beerId
+      in: path
+      description: Beer Id
+      required: true
+      schema:
+        $ref: "#/components/schemas/beerId"
+    
+      
+  
